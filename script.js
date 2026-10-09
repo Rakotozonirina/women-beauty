@@ -157,8 +157,6 @@ let quickviewQty = 1;
 let currentQuickviewProduct = null;
 let checkoutStep = 1;
 let selectedPayment = 'card';
-let threeScene = null;
-let currentShowcaseProduct = 0;
 
 // ======================== PERSIST STATE ========================
 function saveCart() { localStorage.setItem('wb_cart', JSON.stringify(cart)); }
@@ -1034,316 +1032,58 @@ function initRevealObserver() {
   }
 }
 
-// ======================== THREE.JS 3D SHOWCASE ========================
-const SHOWCASE_PRODUCTS = [
-  { name: "Bague Big Mama", price: "129 euro", type: "jewelry" },
-  { name: "Bougie Ambre", price: "39 euro", type: "candle" },
-  { name: "Sac Camille", price: "195 euro", type: "bag" }
-];
+// ======================== HERO CAROUSEL ========================
+function initHeroCarousel() {
+  const slides = Array.from(document.querySelectorAll('.hero-media .hero-img'));
+  const controls = Array.from(document.querySelectorAll('.hero-carousel-dot'));
 
-function initThreeJS() {
-  if (typeof THREE === 'undefined') {
-    console.warn('Three.js not loaded');
-    return;
+  if (slides.length < 2 || slides.length !== controls.length) {
+    throw new Error('Le carrousel du hero doit avoir une commande par image.');
   }
 
-  const canvas = document.getElementById('threejs-canvas');
-  if (!canvas) return;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let activeIndex = 0;
+  let timerId;
 
-  const wrap = canvas.parentElement;
-  const W = wrap.offsetWidth || 500;
-  const H = wrap.offsetHeight || 500;
-
-  // Scene
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xF8F5F0);
-
-  // Camera
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  camera.position.set(0, 0.5, 4.5);
-
-  // Renderer
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(W, H);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
-
-  // Lights
-  const ambientLight = new THREE.AmbientLight(0xFFF8F0, 0.7);
-  scene.add(ambientLight);
-
-  const mainLight = new THREE.DirectionalLight(0xFFF5E8, 2.0);
-  mainLight.position.set(5, 8, 5);
-  mainLight.castShadow = true;
-  mainLight.shadow.mapSize.width = 1024;
-  mainLight.shadow.mapSize.height = 1024;
-  mainLight.shadow.camera.near = 0.5;
-  mainLight.shadow.camera.far = 20;
-  mainLight.shadow.radius = 6;
-  scene.add(mainLight);
-
-  const rimLight = new THREE.DirectionalLight(0xC9A6A0, 0.8);
-  rimLight.position.set(-3, 2, -3);
-  scene.add(rimLight);
-
-  const fillLight = new THREE.PointLight(0xB99A6B, 0.6, 20);
-  fillLight.position.set(-2, 0, 3);
-  scene.add(fillLight);
-
-  // Ground plane (for shadow)
-  const groundGeo = new THREE.PlaneGeometry(20, 20);
-  const groundMat = new THREE.ShadowMaterial({ opacity: 0.07 });
-  const ground = new THREE.Mesh(groundGeo, groundMat);
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -1.5;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  // Materials
-  const champagneMat = new THREE.MeshStandardMaterial({
-    color: 0xB99A6B, metalness: 0.85, roughness: 0.2
-  });
-  const ivoryMat = new THREE.MeshStandardMaterial({
-    color: 0xF8F5F0, metalness: 0.0, roughness: 0.6
-  });
-  const dustyRoseMat = new THREE.MeshStandardMaterial({
-    color: 0xC9A6A0, metalness: 0.0, roughness: 0.5
-  });
-  const leatherMat = new THREE.MeshStandardMaterial({
-    color: 0xC4956A, metalness: 0.0, roughness: 0.8
-  });
-  const waxMat = new THREE.MeshStandardMaterial({
-    color: 0xF5EDD0, metalness: 0.0, roughness: 0.9,
-    emissive: 0xFFDFA0, emissiveIntensity: 0.12
-  });
-
-  // Build 3D objects
-  const objects = [];
-
-  // --- JEWELRY: Elegant torus ring with pearl ---
-  const jewGroup = new THREE.Group();
-
-  // Main ring
-  const ringGeo = new THREE.TorusGeometry(0.8, 0.07, 16, 100);
-  const ring = new THREE.Mesh(ringGeo, champagneMat);
-  ring.castShadow = true;
-  jewGroup.add(ring);
-
-  // Small pearl
-  const pearlGeo = new THREE.SphereGeometry(0.14, 32, 32);
-  const pearlMat = new THREE.MeshStandardMaterial({ color: 0xFAF8F5, metalness: 0.1, roughness: 0.0, envMapIntensity: 1.5 });
-  const pearl = new THREE.Mesh(pearlGeo, pearlMat);
-  pearl.position.set(0, 0.8, 0);
-  pearl.castShadow = true;
-  jewGroup.add(pearl);
-
-  // Tiny connector
-  const connGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.12, 8);
-  const conn = new THREE.Mesh(connGeo, champagneMat);
-  conn.position.set(0, 0.73, 0);
-  jewGroup.add(conn);
-
-  // Small diamonds around ring
-  for (let i = 0; i < 5; i++) {
-    const angle = (i / 5) * Math.PI * 2;
-    const gem = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.06, 0),
-      new THREE.MeshStandardMaterial({ color: 0xF8F5F0, metalness: 0.3, roughness: 0.0, transparent: true, opacity: 0.9 })
-    );
-    gem.position.set(Math.cos(angle) * 0.8, Math.sin(angle) * 0.8, 0);
-    jewGroup.add(gem);
-  }
-
-  scene.add(jewGroup);
-  objects.push(jewGroup);
-
-  // --- CANDLE: Cylinder with flame ---
-  const candleGroup = new THREE.Group();
-
-  const vesselGeo = new THREE.CylinderGeometry(0.65, 0.65, 1.3, 64, 1);
-  const vessel = new THREE.Mesh(vesselGeo, ivoryMat);
-  vessel.castShadow = true;
-  vessel.receiveShadow = true;
-  candleGroup.add(vessel);
-
-  // Rim
-  const rimGeo = new THREE.TorusGeometry(0.65, 0.035, 8, 64);
-  const rim = new THREE.Mesh(rimGeo, new THREE.MeshStandardMaterial({ color: 0xE8DDD2, metalness: 0, roughness: 0.5 }));
-  rim.position.y = 0.65;
-  candleGroup.add(rim);
-
-  // Wax surface
-  const waxGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.05, 32);
-  const wax = new THREE.Mesh(waxGeo, waxMat);
-  wax.position.y = 0.58;
-  candleGroup.add(wax);
-
-  // Wick
-  const wickGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.18, 8);
-  const wick = new THREE.Mesh(wickGeo, new THREE.MeshStandardMaterial({ color: 0x3D2B1A }));
-  wick.position.y = 0.74;
-  candleGroup.add(wick);
-
-  // Flame — cone shape
-  const flameGeo = new THREE.ConeGeometry(0.06, 0.22, 8);
-  const flameMat = new THREE.MeshStandardMaterial({
-    color: 0xFFD066, emissive: 0xFFA040, emissiveIntensity: 1.5,
-    transparent: true, opacity: 0.92
-  });
-  const flame = new THREE.Mesh(flameGeo, flameMat);
-  flame.position.y = 0.95;
-  candleGroup.add(flame);
-
-  // Flame glow light
-  const flameLight = new THREE.PointLight(0xFFA040, 0.8, 3);
-  flameLight.position.set(0, 1.0, 0);
-  candleGroup.add(flameLight);
-
-  scene.add(candleGroup);
-  objects.push(candleGroup);
-
-  // --- BAG: Structured feminine handbag ---
-  const bagGroup = new THREE.Group();
-
-  // Main body
-  const bodyGeo = new THREE.BoxGeometry(1.6, 1.1, 0.5, 1, 1, 1);
-  const body = new THREE.Mesh(bodyGeo, leatherMat);
-  body.castShadow = true;
-  body.position.y = 0;
-  bagGroup.add(body);
-
-  // Flap
-  const flapGeo = new THREE.BoxGeometry(1.6, 0.6, 0.06);
-  const flap = new THREE.Mesh(flapGeo, new THREE.MeshStandardMaterial({ color: 0xB8895E, metalness: 0, roughness: 0.75 }));
-  flap.position.set(0, 0.35, 0.28);
-  flap.rotation.x = 0.1;
-  bagGroup.add(flap);
-
-  // Clasp
-  const claspGeo = new THREE.BoxGeometry(0.2, 0.14, 0.1);
-  const clasp = new THREE.Mesh(claspGeo, champagneMat);
-  clasp.position.set(0, 0.14, 0.35);
-  bagGroup.add(clasp);
-
-  // Handle (torus arc)
-  const handleGeo = new THREE.TorusGeometry(0.38, 0.04, 8, 40, Math.PI);
-  const handle = new THREE.Mesh(handleGeo, leatherMat);
-  handle.position.set(0, 0.85, 0);
-  handle.rotation.z = Math.PI;
-  bagGroup.add(handle);
-
-  // Stitching lines (thin boxes)
-  [-0.78, 0.78].forEach(x => {
-    const stitch = new THREE.Mesh(
-      new THREE.BoxGeometry(0.018, 1.05, 0.01),
-      new THREE.MeshStandardMaterial({ color: 0xD4AC82 })
-    );
-    stitch.position.set(x, 0, 0.255);
-    bagGroup.add(stitch);
-  });
-
-  scene.add(bagGroup);
-  objects.push(bagGroup);
-
-  // Position objects — only show first
-  objects.forEach((obj, i) => { obj.visible = i === 0; });
-
-  // Mouse interaction
-  let mouseX = 0, mouseY = 0;
-  const handleMouseMove = (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-    mouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+  const showSlide = (index) => {
+    activeIndex = index;
+    slides.forEach((slide, slideIndex) => {
+      slide.classList.toggle('is-active', slideIndex === activeIndex);
+      controls[slideIndex].classList.toggle('is-active', slideIndex === activeIndex);
+      controls[slideIndex].setAttribute('aria-pressed', String(slideIndex === activeIndex));
+    });
   };
-  canvas.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-  // Showcase navigation
-  const navBtns = document.querySelectorAll('.showcase-nav-btn');
-  const labelName = document.querySelector('.showcase-label-name');
-  const labelPrice = document.querySelector('.showcase-label-price');
-  const sketchfabWrap = document.getElementById('sketchfab-wrap');
+  const stopAutoplay = () => {
+    window.clearInterval(timerId);
+    timerId = undefined;
+  };
 
-  // Au chargement, le produit 0 (Bague Big Mama / Sketchfab) est actif
-  if (canvas) canvas.style.display = 'none';
-
-  function switchShowcaseProduct(idx) {
-    if (sketchfabWrap) {
-      sketchfabWrap.style.display = idx === 0 ? 'flex' : 'none';
+  const startAutoplay = () => {
+    stopAutoplay();
+    if (!reducedMotion.matches && !document.hidden) {
+      timerId = window.setInterval(() => {
+        showSlide((activeIndex + 1) % slides.length);
+      }, 6000);
     }
-    if (canvas) {
-      canvas.style.display = idx === 0 ? 'none' : 'block';
-    }
-    objects.forEach((obj, i) => {
-      obj.visible = i === idx;
-    });
-    navBtns.forEach((btn, i) => {
-      btn.classList.toggle('active', i === idx);
-      btn.setAttribute('aria-pressed', String(i === idx));
-    });
-    if (labelName) labelName.textContent = SHOWCASE_PRODUCTS[idx].name;
-    if (labelPrice) labelPrice.textContent = SHOWCASE_PRODUCTS[idx].price;
-    currentShowcaseProduct = idx;
-  }
+  };
 
-  navBtns.forEach((btn, i) => {
-    btn.addEventListener('click', () => switchShowcaseProduct(i));
+  controls.forEach((control, index) => {
+    control.addEventListener('click', () => {
+      showSlide(index);
+      startAutoplay();
+    });
   });
 
-  // Animation loop
-  let time = 0;
-  function animate() {
-    requestAnimationFrame(animate);
-    if (currentShowcaseProduct === 0) return;
-    time += 0.012;
-
-    const currentObj = objects[currentShowcaseProduct];
-    if (currentObj) {
-      // Slow rotation
-      currentObj.rotation.y = time * 0.4;
-      currentObj.rotation.x += (mouseY * 0.15 - currentObj.rotation.x) * 0.04;
-      currentObj.rotation.z += (-mouseX * 0.08 - currentObj.rotation.z) * 0.04;
-
-      // Gentle floating
-      currentObj.position.y = Math.sin(time * 0.7) * 0.1;
-    }
-
-    // Flame animation
-    if (currentShowcaseProduct === 1 && flame) {
-      flame.scale.x = 1 + Math.sin(time * 8) * 0.08;
-      flame.scale.z = 1 + Math.cos(time * 6) * 0.06;
-      flameMat.emissiveIntensity = 1.4 + Math.sin(time * 10) * 0.3;
-      flameLight.intensity = 0.8 + Math.sin(time * 9) * 0.2;
-    }
-
-    // Camera subtle movement
-    camera.position.x += (mouseX * 0.3 - camera.position.x) * 0.02;
-    camera.position.y += (-mouseY * 0.2 + 0.5 - camera.position.y) * 0.02;
-    camera.lookAt(0, 0, 0);
-
-    renderer.render(scene, camera);
-  }
-
-  animate();
-
-  // Resize handler
-  const resizeObserver = new ResizeObserver(() => {
-    const w = wrap.offsetWidth;
-    const h = wrap.offsetHeight;
-    renderer.setSize(w, h);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  });
-  resizeObserver.observe(wrap);
-
-  threeScene = { scene, camera, renderer, objects };
+  document.addEventListener('visibilitychange', startAutoplay);
+  reducedMotion.addEventListener('change', startAutoplay);
+  startAutoplay();
 }
 
 // ======================== INIT ALL ========================
 function init() {
   initHeader();
+  initHeroCarousel();
   initMobileNav();
   initSearch();
   initFavorites();
@@ -1363,11 +1103,6 @@ function init() {
       el.classList.add('revealed');
     });
   }, 200);
-
-  // Init Three.js after page load
-  window.addEventListener('load', () => {
-    setTimeout(initThreeJS, 300);
-  });
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -160,8 +160,10 @@
 
   <!-- HERO SECTION -->
   <section id="hero" class="hero" aria-label="Section d accueil">
-    <div class="hero-media">
-      <img src="assets/images/hero.jpg" alt="Femme elegante en robe ivoire dans un interieur lumineux" class="hero-img" width="1440" height="810" loading="eager" fetchpriority="high" />
+    <div class="hero-media" aria-hidden="true">
+      <img src="assets/images/category-bijoux.jpg" alt="" class="hero-img is-active" width="600" height="800" loading="eager" fetchpriority="high" />
+      <img src="assets/images/category-sacs.jpg" alt="" class="hero-img" width="600" height="800" loading="lazy" />
+      <img src="assets/images/category-bougies.jpg" alt="" class="hero-img" width="600" height="800" loading="lazy" />
       <div class="hero-overlay"></div>
     </div>
     <div class="hero-content">
@@ -178,6 +180,11 @@
     <div class="hero-scroll-indicator" aria-hidden="true">
       <div class="scroll-line"></div>
       <span>Defiler</span>
+    </div>
+    <div class="hero-carousel-controls" role="group" aria-label="Choisir une image du hero">
+      <button class="hero-carousel-dot is-active" type="button" aria-label="Afficher les bijoux" aria-pressed="true"></button>
+      <button class="hero-carousel-dot" type="button" aria-label="Afficher les sacs" aria-pressed="false"></button>
+      <button class="hero-carousel-dot" type="button" aria-label="Afficher les bougies" aria-pressed="false"></button>
     </div>
   </section>
 
@@ -281,31 +288,33 @@
     </div>
   </section>
 
-  <!-- 3D SHOWCASE -->
-  <section id="showcase-3d" class="section showcase-section" aria-label="Presentation 3D de nos produits">
-    <div class="showcase-inner">
-      <div class="showcase-text reveal-up">
-        <p class="section-eyebrow">Experience immersive</p>
-        <h2 class="section-title showcase-title">Trois essentiels,<br><em>infiniment desirables.</em></h2>
-        <p class="showcase-desc">Chaque piece pensee avec soin, chaque detail porteur d une intention.</p>
-        <div class="showcase-nav" id="showcase-nav" role="group" aria-label="Choisir le produit 3D">
-          <button class="showcase-nav-btn active" data-product="0" aria-pressed="true"><span class="showcase-nav-dot"></span>Bijou</button>
-          <button class="showcase-nav-btn" data-product="1" aria-pressed="false"><span class="showcase-nav-dot"></span>Bougie</button>
-          <button class="showcase-nav-btn" data-product="2" aria-pressed="false"><span class="showcase-nav-dot"></span>Sac</button>
-        </div>
+  <!-- VITRINE DES ESSENTIELS -->
+  <section id="showcase-3d" class="section showcase-section" aria-label="Nos trois essentiels">
+    <div class="container">
+      <div class="showcase-heading reveal-up">
+        <p class="section-eyebrow">L’élégance au quotidien</p>
+        <h2 class="section-title">Trois essentiels,<br><em>infiniment désirables.</em></h2>
+        <p class="showcase-desc">Le petit détail qui change tout : découvrez nos bijoux, sacs et bougies signature.</p>
       </div>
-      <div class="showcase-canvas-wrap">
-        <div class="sketchfab-embed-wrapper" id="sketchfab-wrap">
-          <iframe title="Bague Big Mama" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/f5c69f8afe9b45ec803ad014fae4d64a/embed"> </iframe>
-          <p style="font-size: 13px; font-weight: normal; margin: 5px; color: #4A4A4A;">
-            <a href="https://sketchfab.com/3d-models/bague-big-mama-f5c69f8afe9b45ec803ad014fae4d64a" target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;"> Bague Big Mama </a> by <a href="https://sketchfab.com/grillzkonectionbijoux" target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;"> grillzkonectionbijoux </a> on <a href="https://sketchfab.com" target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;">Sketchfab</a>
-          </p>
-        </div>
-        <canvas id="threejs-canvas" aria-label="Presentation 3D du produit" role="img"></canvas>
-        <div id="showcase-label" class="showcase-label" aria-live="polite">
-          <span class="showcase-label-name">Bague Big Mama</span>
-          <span class="showcase-label-price">129 euro</span>
-        </div>
+      <div class="showcase-grid">
+        <article class="showcase-card reveal-scale">
+          <a class="showcase-card-link" href="#bijoux" aria-label="Découvrir les bijoux">
+            <div class="showcase-card-image"><img src="assets/images/category-bijoux.jpg" alt="Bijoux délicats dorés" loading="lazy" width="600" height="800"><span class="showcase-card-tag">L’éclat subtil</span></div>
+            <div class="showcase-card-copy"><div><h3>Bijoux</h3><p>Des pièces lumineuses pour souligner votre style, du matin jusqu’au soir.</p></div><span class="showcase-card-arrow" aria-hidden="true">↗</span></div>
+          </a>
+        </article>
+        <article class="showcase-card reveal-scale delay-1">
+          <a class="showcase-card-link" href="#sacs" aria-label="Découvrir les sacs">
+            <div class="showcase-card-image"><img src="assets/images/category-sacs.jpg" alt="Sac élégant de la collection" loading="lazy" width="600" height="800"><span class="showcase-card-tag">L’allure pratique</span></div>
+            <div class="showcase-card-copy"><div><h3>Sacs</h3><p>Des compagnons élégants, pensés pour vous suivre partout avec allure.</p></div><span class="showcase-card-arrow" aria-hidden="true">↗</span></div>
+          </a>
+        </article>
+        <article class="showcase-card reveal-scale delay-2">
+          <a class="showcase-card-link" href="#bougies" aria-label="Découvrir les bougies">
+            <div class="showcase-card-image"><img src="assets/images/category-bougies.jpg" alt="Bougie parfumée aux tons chaleureux" loading="lazy" width="600" height="800"><span class="showcase-card-tag">L’instant douceur</span></div>
+            <div class="showcase-card-copy"><div><h3>Bougies</h3><p>Une flamme douce et des notes parfumées pour créer votre moment à vous.</p></div><span class="showcase-card-arrow" aria-hidden="true">↗</span></div>
+          </a>
+        </article>
       </div>
     </div>
   </section>
@@ -425,7 +434,6 @@
     </div>
   </footer>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" defer></script>
   <script src="script.js" defer></script>
 </body>
 </html>
